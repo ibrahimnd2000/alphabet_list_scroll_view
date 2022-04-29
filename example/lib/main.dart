@@ -144,6 +144,7 @@ class _MainAppState extends State<MainApp> {
         title: const Text('Plugin example app'),
       ),
       body: AlphabetListScrollView(
+        vibrateOnSelect: true,
         strList: strList,
         highlightTextStyle: TextStyle(
           color: Colors.yellow,

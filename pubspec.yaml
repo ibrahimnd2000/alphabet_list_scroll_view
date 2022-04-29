@@ -9,7 +9,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  vibration: ^1.7.4-nullsafety.0
   rxdart: ^0.26.0
 
 dev_dependencies:

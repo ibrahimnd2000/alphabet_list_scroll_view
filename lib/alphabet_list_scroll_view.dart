@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:vibration/vibration.dart';
+import 'package:flutter/services.dart';
 
 typedef IndexedHeight = double Function(int);
 
@@ -10,10 +10,11 @@ class AlphabetScrollListHeader {
   final Icon icon;
   final IndexedHeight indexedHeaderHeight;
 
-  AlphabetScrollListHeader(
-      {required this.widgetList,
-      required this.icon,
-      required this.indexedHeaderHeight});
+  AlphabetScrollListHeader({
+    required this.widgetList,
+    required this.icon,
+    required this.indexedHeaderHeight,
+  });
 }
 
 class _SpecialHeaderAlphabet {
@@ -32,18 +33,22 @@ class AlphabetListScrollView extends StatefulWidget {
   final bool showPreview;
   final bool keyboardUsage;
   final List<AlphabetScrollListHeader> headerWidgetList;
+  final bool vibrateOnSelect;
+  final Color? borderColor;
 
-  const AlphabetListScrollView(
-      {Key? key,
-      required this.strList,
-      this.itemBuilder,
-      this.highlightTextStyle = const TextStyle(color: Colors.red),
-      this.normalTextStyle = const TextStyle(color: Colors.black),
-      this.showPreview = false,
-      this.headerWidgetList = const [],
-      required this.indexedHeight,
-      this.keyboardUsage = false})
-      : super(key: key);
+  const AlphabetListScrollView({
+    Key? key,
+    required this.strList,
+    this.itemBuilder,
+    this.highlightTextStyle = const TextStyle(color: Colors.red),
+    this.normalTextStyle = const TextStyle(color: Colors.black),
+    this.showPreview = false,
+    this.headerWidgetList = const [],
+    required this.indexedHeight,
+    this.keyboardUsage = false,
+    this.vibrateOnSelect = false,
+    this.borderColor = Colors.black,
+  }) : super(key: key);
 
   @override
   _AlphabetListScrollViewState createState() => _AlphabetListScrollViewState();
@@ -271,8 +276,8 @@ class _AlphabetListScrollViewState extends State<AlphabetListScrollView> {
   }
 
   _select(int index) async {
-    if (await (Vibration.hasVibrator() as FutureOr<bool>)) {
-      Vibration.vibrate(duration: 20);
+    if (widget.vibrateOnSelect) {
+      HapticFeedback.vibrate();
     }
     var height = heightMap[alphabetList[index]]!;
     controller.jumpTo(height);
@@ -406,6 +411,7 @@ class _AlphabetListScollView extends StatefulWidget {
   final bool specialHeader;
   final List<_SpecialHeaderAlphabet> specialList;
   final bool? keyboardUsage;
+  final Color? borderColor;
 
   const _AlphabetListScollView({
     Key? key,
@@ -420,6 +426,7 @@ class _AlphabetListScollView extends StatefulWidget {
     this.specialHeader = false,
     this.specialList = const [],
     this.keyboardUsage,
+    this.borderColor = Colors.black,
   }) : super(key: key);
 
   @override
@@ -455,18 +462,18 @@ class _AlphabetListScollViewState extends State<_AlphabetListScollView> {
           child: header.icon,
         );
       } else {
-        textview = Text(
-          widget.strList![x],
-          textAlign: TextAlign.justify,
-          style: widget.selectedIndex == x
-              ? widget.highlightTextStyle
-              : widget.normalTextStyle,
+        textview = Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            widget.strList![x],
+            textAlign: TextAlign.justify,
+            style: widget.selectedIndex == x
+                ? widget.highlightTextStyle
+                : widget.normalTextStyle,
+          ),
         );
       }
-      charList.add(Padding(
-        padding: const EdgeInsets.all(2.0),
-        child: textview,
-      ));
+      charList.add(textview);
     }
     return charList;
   }
@@ -475,25 +482,33 @@ class _AlphabetListScollViewState extends State<_AlphabetListScollView> {
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisSize: MainAxisSize.max,
       children: <Widget>[
-        Center(
-          child: Container(
-            key: widget.insideKey,
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onPanStart: (details) {
-                  widget.positionCallback!(details.localPosition.dy);
-                },
-                onPanUpdate: (details) {
-                  widget.positionCallback!(details.localPosition.dy);
-                },
-                onTapDown: (details) {
-                  widget.positionCallback!(details.localPosition.dy);
-                },
-                child: _column(),
-              ),
+        Container(
+          key: widget.insideKey,
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: widget.borderColor!,
+            ),
+          ),
+          margin: EdgeInsets.only(right: 14.0, top: 15.0),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 8.0,
+              vertical: 16.0,
+            ),
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onPanStart: (details) {
+                widget.positionCallback!(details.localPosition.dy);
+              },
+              onPanUpdate: (details) {
+                widget.positionCallback!(details.localPosition.dy);
+              },
+              onTapDown: (details) {
+                widget.positionCallback!(details.localPosition.dy);
+              },
+              child: _column(),
             ),
           ),
         ),
@@ -505,16 +520,16 @@ class _AlphabetListScollViewState extends State<_AlphabetListScollView> {
     if (!widget.keyboardUsage!) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisSize: MainAxisSize.max,
         children: aToZ(),
       );
     } else {
       return SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          mainAxisSize: MainAxisSize.max,
           children: aToZ(),
         ),
       );

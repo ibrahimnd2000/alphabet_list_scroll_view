@@ -387,6 +387,7 @@ class _AlphabetListScrollViewState extends State<AlphabetListScrollView> {
             positionCallback: (position) {
               _currentWidgetIndex(position);
             },
+            borderColor: widget.borderColor,
             highlightTextStyle: widget.highlightTextStyle,
             normalTextStyle: widget.normalTextStyle,
           ),
